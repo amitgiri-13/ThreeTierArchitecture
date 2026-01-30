@@ -2,7 +2,7 @@ resource "aws_subnet" "subnet" {
   vpc_id                  = var.vpc_id
   cidr_block              = var.subnet_cidr_block[count.index]
   availability_zone       = var.subnet_az[count.index % var.number_of_az ] 
-  map_public_ip_on_launch = var.subnet_type == "public"
+  map_public_ip_on_launch = var.map_public_ip_on_launch
   count = var.number_of_subnets
 
   tags = {

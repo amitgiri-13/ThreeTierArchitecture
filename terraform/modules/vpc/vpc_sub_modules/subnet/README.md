@@ -29,6 +29,7 @@ The module is designed to be **AZ-aware**, reusable, and suitable for production
 | `number_of_az`      | Number of Availability Zones                | `number`       |
 | `number_of_subnets` | Number of subnets to create                 | `number`       |
 | `subnet_type`       | Subnet type: `public` or `private`          | `string`       |
+| `map_public_ip_on_launch`       | Auto assign public ip           | `bool`       |
 
 ---
 
@@ -36,7 +37,7 @@ The module is designed to be **AZ-aware**, reusable, and suitable for production
 
 | Name         | Description                                              | Type     | Default |
 | ------------ | -------------------------------------------------------- | -------- | ------- |
-| `gateway_id` | Gateway ID to associate with route table (IGW or NAT GW) | `string` | `null`  |
+| `gateway_id` | Gateway ID to associate with route table (IGW or NAT GW), required for public subnet | `string` | `null`  |
 
 ---
 
@@ -56,6 +57,7 @@ module "public_subnets" {
   number_of_subnets = var.number_of_public_subnets
   subnet_type       = "public"
   gateway_id        = aws_internet_gateway.internet_gateway.id
+  map_public_ip_on_launch = true
 }
 ```
 
@@ -75,6 +77,7 @@ module "private_subnets" {
   number_of_subnets = var.number_of_private_subnets
   subnet_type       = "private"
   gateway_id        = aws_nat_gateway.nat.id
+  map_public_ip_on_launch = false
 }
 ```
 

@@ -50,7 +50,16 @@ variable "number_of_subnets" {
   type        = number
 
   validation {
-    condition     = contains([0, 1, 2, 3, 4, 6], var.number_of_subnets)
-    error_message = "number_of_subnets must be one of: 0, 1, 2, 3, 4, or 6."
+    condition     = var.number_of_subnets >= 0
+    error_message = "number_of_subnets must be greater or equal to 0"
+  }
+}
+
+variable "map_public_ip_on_launch" {
+  description = "Auto assign public ip to instance"
+  type = bool
+  validation {
+    condition = contains([true, false],var.map_public_ip_on_launch)
+    error_message = "map_public_ip_on_launch must be  one of: 'true', 'false'"
   }
 }
