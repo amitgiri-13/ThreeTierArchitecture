@@ -51,8 +51,8 @@ variable "number_of_public_subnets" {
   type    = number
 
   validation {
-    condition     = contains([0, 1, 2, 3, 4, 6], var.number_of_public_subnets)
-    error_message = "number_of_public_subnets must be one of: 0, 1, 2, 3, 4, or 6."
+    condition     = var.number_of_public_subnets >= 0
+    error_message = "number_of_public_subnets must be greater or equal to 0"
   }
 }
 
@@ -71,8 +71,8 @@ variable "number_of_private_subnets" {
   type    = number
 
   validation {
-    condition     = contains([0, 1, 2, 3, 4, 6], var.number_of_private_subnets)
-    error_message = "number_of_private_subnets must be one of: 0, 1, 2, 3, 4, or 6."
+    condition     = var.number_of_private_subnets >= 0
+    error_message = "number_of_private_subnets must be greater or equla to 0"
   }
 }
 
