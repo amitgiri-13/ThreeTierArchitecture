@@ -84,3 +84,12 @@ variable "private_subnets_cidr_block" {
     error_message = "All private_subnets_cidr_block values must be valid CIDR blocks."
   }
 }
+
+variable "map_public_ip_on_launch" {
+  description = "Auto assign public ip to instance"
+  type = bool
+  validation {
+    condition = contains([true, false],var.map_public_ip_on_launch)
+    error_message = "map_public_ip_on_launch must be  one of: 'true', 'false'"
+  }
+}

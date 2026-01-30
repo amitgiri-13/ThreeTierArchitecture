@@ -52,6 +52,7 @@ module "public_subnets" {
   number_of_subnets = var.number_of_public_subnets
   subnet_type       = "public"
   gateway_id        = var.number_of_public_subnets > 0 ?  aws_internet_gateway.internet_gateway[0].id : null
+  map_public_ip_on_launch = var.map_public_ip_on_launch
 }
 
 module "private_subnets" {
@@ -64,5 +65,6 @@ module "private_subnets" {
   number_of_az      = var.number_of_az
   number_of_subnets = var.number_of_private_subnets
   subnet_type       = "private"
+  map_public_ip_on_launch = var.map_public_ip_on_launch
 }
 
