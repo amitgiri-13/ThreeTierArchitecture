@@ -65,6 +65,6 @@ module "private_subnets" {
   number_of_az      = var.number_of_az
   number_of_subnets = var.number_of_private_subnets
   subnet_type       = "private"
-  map_public_ip_on_launch = var.map_public_ip_on_launch
+  map_public_ip_on_launch = "false"  
 }
 

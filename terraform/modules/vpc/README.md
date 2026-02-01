@@ -39,7 +39,6 @@ module "vpc" {
   # Private Subnets
   number_of_private_subnets  = 2
   private_subnets_cidr_block = ["10.0.1.0/24", "10.0.2.0/24"]
-  map_public_ip_on_launch = false
 }
 ```
 
@@ -83,7 +82,7 @@ module "vpc" {
 | ---------------------------- | ------------------------------- | -------------- | -------- |
 | `number_of_private_subnets`  | Number of private subnets       | `number`       | yes      |
 | `private_subnets_cidr_block` | CIDR blocks for private subnets | `list(string)` | yes      |
-| `map_public_ip_on_launch`    | Auto assign public ip: `false`  | `bool`         | yes      |
+| `map_public_ip_on_launch`    | Auto assign public ip: Always `false`  | `bool`         | no      |
 
 ---
 
