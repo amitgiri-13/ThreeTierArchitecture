@@ -4,6 +4,7 @@ This Terraform module creates an **AWS VPC** with configurable **Availability Zo
 
 The module enforces **AZ-aware subnet limits** and validates CIDR and subnet counts at plan time to prevent invalid network layouts.
 
+![alt text](writeplanapply.png)
 ---
 
 ##  Features
