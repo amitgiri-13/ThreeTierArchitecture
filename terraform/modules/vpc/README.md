@@ -21,10 +21,10 @@ The module enforces **AZ-aware subnet limits** and validates CIDR and subnet cou
 
 ```hcl
 module "vpc" {
-  source = "./modules/vpc"
+  source = "git::https://github.com/amitgiri-13/ThreeTierArchitecture.git//terraform/modules/vpc?ref=main"
 
   # VPC
-  vpc_name       = "terraformVPC"
+  vpc_name       = "TestVPC"
   vpc_cidr_block = "10.0.0.0/16"
 
   # Availability Zones
