@@ -22,7 +22,7 @@ resource "aws_route_table" "route_table" {
 }
 
 resource "aws_route" "internet_route" {
-  count = var.subnet_type == "public" && var.number_of_subnets > 0 ? 1 : 0
+  count = var.subnet_type == "public" && var.number_of_subnets > 0 ? var.number_of_subnets : 0
 
   route_table_id         = aws_route_table.route_table[count.index].id
   destination_cidr_block = "0.0.0.0/0"
