@@ -15,6 +15,7 @@ resource "aws_security_group" "this" {
       protocol    = ingress.value.protocol
       cidr_blocks = lookup(ingress.value, "cidr_blocks", [])
       ipv6_cidr_blocks = lookup(ingress.value, "ipv6_cidr_blocks", [])
+      security_groups = lookup(ingress.value, "security_groups", null)
       description = lookup(ingress.value, "description", null)
     }
   }
@@ -27,6 +28,7 @@ resource "aws_security_group" "this" {
       protocol    = egress.value.protocol
       cidr_blocks = lookup(egress.value, "cidr_blocks", [])
       ipv6_cidr_blocks = lookup(egress.value, "ipv6_cidr_blocks", [])
+      security_groups = lookup(egress.value, "security_groups", null)
       description = lookup(egress.value, "description", null)
     }
   }

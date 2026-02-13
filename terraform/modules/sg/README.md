@@ -61,6 +61,7 @@ module "sg" {
   protocol         = string
   cidr_blocks      = optional(list(string))
   ipv6_cidr_blocks = optional(list(string))
+  security_groups  = optional(list(string))
   description      = optional(string)
 }
 ```

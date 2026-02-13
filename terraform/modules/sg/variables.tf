@@ -28,6 +28,7 @@ variable "ingress_rules" {
     protocol         = string
     cidr_blocks      = optional(list(string))
     ipv6_cidr_blocks = optional(list(string))
+    security_groups = optional(list(string))
     description      = optional(string)
   }))
   default = []
@@ -41,6 +42,7 @@ variable "egress_rules" {
     protocol         = string
     cidr_blocks      = optional(list(string))
     ipv6_cidr_blocks = optional(list(string))
+    security_groups = optional(list(string))
     description      = optional(string)
   }))
   default = []
