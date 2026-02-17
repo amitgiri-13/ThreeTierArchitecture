@@ -13,3 +13,13 @@ output "private_subnets" {
   value       = module.private_subnets.subnets_id
 }
 
+
+output "internet_gateway_id" {
+  description = "Internet gateway id"
+  value = aws_internet_gateway.internet_gateway[*].id
+}
+
+output "regional_nat_gateway_id" {
+  description = "regional nat gateway id"
+  value = module.nat.nat_gateway_id
+}

@@ -1,45 +1,91 @@
-# VPC Terraform Module
+# VPC Module
 
-This Terraform module creates an **AWS VPC** with configurable **Availability Zones, public subnets, private subnets**, and an **Internet Gateway**, using a reusable subnet sub-module.
+##  Description
 
-The module enforces **AZ-aware subnet limits** and validates CIDR and subnet counts at plan time to prevent invalid network layouts.
+This module creates a complete AWS VPC networking foundation including:
 
-![alt text](writeplanapply.png)
+* VPC
+* Internet Gateway (optional)
+* Public Subnets
+* Private Subnets
+* Route Tables
+* Optional Regional NAT Gateway
+
+It is designed to be modular, validated, and production-ready with built-in safety checks.
+
+---
+
+##  Architecture Overview
+
+### Public Subnet Flow
+
+```
+Public Subnet
+      ↓
+Route Table
+      ↓
+Internet Gateway
+      ↓
+Internet
+```
+
+###  Private Subnet Flow (With NAT Enabled)
+
+```
+Private Subnet
+      ↓
+Route Table
+      ↓
+NAT Gateway
+      ↓
+Internet Gateway
+      ↓
+Internet
+```
+
 ---
 
 ##  Features
 
-* Creates an AWS VPC with DNS support options
-* AZ-aware validation for public and private subnets
-* Supports **0–N public** and **0–2N private** subnets (where N = AZ count)
-* Automatically creates Internet Gateway when public subnets exist
-* Uses a reusable subnet sub-module for clean separation of concerns
-* Fails early with clear error messages using `precondition`
+* Configurable VPC CIDR
+* DNS support control
+* Public and Private subnet support
+* Multi-AZ support (1–3 AZs)
+* Optional regional NAT Gateway
+* Automatic Internet Gateway creation (if public subnets exist)
+* Strong variable validation
+* Lifecycle preconditions for subnet limits
+* Custom tagging support
 
 ---
 
-##  Module Usage
+##  Usage Example
 
 ```hcl
 module "vpc" {
-  source = "git::https://github.com/amitgiri-13/ThreeTierArchitecture.git//terraform/modules/vpc?ref=main"
+  source = "./modules/vpc"
 
-  # VPC
-  vpc_name       = "TestVPC"
+  vpc_name       = "demo-vpc"
   vpc_cidr_block = "10.0.0.0/16"
 
-  # Availability Zones
-  number_of_az = 1
-  vpc_azs      = ["us-east-1a"]
+  number_of_az = 2
+  vpc_azs      = ["us-east-1a", "us-east-1b"]
 
-  # Public Subnets
-  number_of_public_subnets  = 1
-  public_subnets_cidr_block = ["10.0.0.0/24"]
-  map_public_ip_on_launch = true
+  # Public subnets
+  number_of_public_subnets    = 2
+  public_subnets_cidr_block   = ["10.0.1.0/24", "10.0.2.0/24"]
 
-  # Private Subnets
-  number_of_private_subnets  = 2
-  private_subnets_cidr_block = ["10.0.1.0/24", "10.0.2.0/24"]
+  # Private subnets
+  number_of_private_subnets   = 2
+  private_subnets_cidr_block  = ["10.0.10.0/24", "10.0.20.0/24"]
+
+  map_public_ip_on_launch     = true
+  enable_regional_natgateway  = true
+
+  tags = {
+    Environment = "dev"
+    Project     = "demo"
+  }
 }
 ```
 
@@ -47,109 +93,94 @@ module "vpc" {
 
 ##  Inputs
 
-### VPC
+### Core VPC
 
-| Name                   | Description            | Type     | Required |
-| ---------------------- | ---------------------- | -------- | -------- |
-| `vpc_name`             | Name of the VPC        | `string` | yes      |
-| `vpc_cidr_block`       | CIDR block for the VPC | `string` | yes      |
-| `enable_dns_support`   | Enable DNS support     | `bool`   | no       |
-| `enable_dns_hostnames` | Enable DNS hostnames   | `bool`   | no       |
-
----
-
-### Availability Zones
-
-| Name           | Description                  | Type           | Required |
-| -------------- | ---------------------------- | -------------- | -------- |
-| `number_of_az` | Number of Availability Zones | `number`       | yes      |
-| `vpc_azs`      | List of AZs to use           | `list(string)` | yes      |
+| Name                   | Type           | Description                |
+| ---------------------- | -------------- | -------------------------- |
+| `vpc_name`             | `string`       | Name of the VPC            |
+| `vpc_cidr_block`       | `string`       | VPC CIDR block             |
+| `enable_dns_hostnames` | `bool`         | Enable DNS hostnames       |
+| `enable_dns_support`   | `bool`         | Enable DNS resolution      |
+| `number_of_az`         | `number`       | Number of AZs (1–3)        |
+| `vpc_azs`              | `list(string)` | List of availability zones |
+| `tags`                 | `map(string)`  | Additional tags            |
 
 ---
 
 ### Public Subnets
 
-| Name                        | Description                    | Type           | Required |
-| --------------------------- | ------------------------------ | -------------- | -------- |
-| `number_of_public_subnets`  | Number of public subnets       | `number`       | yes      |
-| `public_subnets_cidr_block` | CIDR blocks for public subnets | `list(string)` | yes      |
-| `map_public_ip_on_launch`    | Auto assign public ip: `false or true`  | `bool`         | yes      |
+| Name                        | Type           | Description                    |
+| --------------------------- | -------------- | ------------------------------ |
+| `number_of_public_subnets`  | `number`       | Number of public subnets       |
+| `public_subnets_cidr_block` | `list(string)` | CIDR blocks for public subnets |
 
 ---
 
 ### Private Subnets
 
-| Name                         | Description                     | Type           | Required |
-| ---------------------------- | ------------------------------- | -------------- | -------- |
-| `number_of_private_subnets`  | Number of private subnets       | `number`       | yes      |
-| `private_subnets_cidr_block` | CIDR blocks for private subnets | `list(string)` | yes      |
-| `map_public_ip_on_launch`    | Auto assign public ip: Always `false`  | `bool`         | no      |
+| Name                         | Type           | Description                            |
+| ---------------------------- | -------------- | -------------------------------------- |
+| `number_of_private_subnets`  | `number`       | Number of private subnets              |
+| `private_subnets_cidr_block` | `list(string)` | CIDR blocks for private subnets        |
+| `enable_regional_natgateway` | `bool`         | Enable NAT Gateway for private subnets |
 
 ---
 
-##  Validations & Rules
+### Network Behavior
 
-The module enforces the following rules during `terraform plan`:
-
-### Subnet-to-AZ Rules
-
-For `number_of_az = N`:
-
-* Public subnets: `0 ≤ public ≤ N`
-* Private subnets: `0 ≤ private ≤ 2 × N`
-
-### CIDR Consistency
-
-* Length of `public_subnets_cidr_block` **must equal** `number_of_public_subnets`
-* Length of `private_subnets_cidr_block` **must equal** `number_of_private_subnets`
-
-If these rules are violated, Terraform will fail with a clear error message.
-
----
-
-## Resources Created
-
-* `aws_vpc`
-* `aws_internet_gateway` (only if public subnets > 0)
-* Public subnets (via subnet sub-module)
-* Private subnets (via subnet sub-module)
-* Route tables and associations (inside subnet module)
+| Name                      | Type   | Description                                    |
+| ------------------------- | ------ | ---------------------------------------------- |
+| `map_public_ip_on_launch` | `bool` | Auto assign public IP to EC2 in public subnets |
 
 ---
 
 ##  Outputs
 
-| Name                 | Description                |
-| -------------------- | -------------------------- |
-| `vpc_id`             | ID of the created VPC      |
-| `public_subnet_ids`  | List of public subnet IDs  |
-| `private_subnet_ids` | List of private subnet IDs |
+| Name                      | Description                |
+| ------------------------- | -------------------------- |
+| `vpc_id`                  | VPC ID                     |
+| `public_subnets`          | List of public subnet IDs  |
+| `private_subnets`         | List of private subnet IDs |
+| `internet_gateway_id`     | Internet Gateway ID        |
+| `regional_nat_gateway_id` | NAT Gateway ID             |
 
 ---
 
-##  Design Notes
+## Validation Rules
 
-* Subnet creation logic is delegated to a dedicated subnet module
-* Internet Gateway is conditionally created only when needed
-* Designed to scale cleanly from 1 AZ to multi-AZ architectures
+This module enforces:
 
----
+* `number_of_az` must be between 1 and 3
+* Public subnets ≤ number of AZs
+* Private subnets ≤ 2 × number of AZs
+* CIDR list length must match subnet count
+* CIDR blocks must be valid
 
-##  Best Practices
-
-* Use **1 public + 2 private subnets per AZ** for production workloads
-* Use separate route tables for public and private subnets
-* Add NAT Gateways per AZ for high availability (future extension)
+If validation fails, Terraform will stop during planning.
 
 ---
 
-##  Compatibility
+##  Important Notes
 
-* Terraform ≥ 1.2
-* AWS Provider ≥ 5.x
+* Internet Gateway is created only if `number_of_public_subnets > 0`
+* NAT Gateway is created only if `enable_regional_natgateway = true`
+* Private subnets will not have internet access unless NAT is enabled
+* Ensure subnet CIDR blocks do not overlap
 
 ---
 
-##  License
+##  Module Structure
 
-MIT License
+```
+modules/
+ └── vpc/
+      ├── main.tf
+      ├── variables.tf
+      ├── outputs.tf
+      ├── locals.tf
+      └── vpc_sub_modules/
+            ├── subnet/
+            └── natgateway/
+```
+
+---

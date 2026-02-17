@@ -3,9 +3,12 @@ resource "aws_vpc" "vpc" {
   enable_dns_hostnames = var.enable_dns_hostnames
   enable_dns_support   = var.enable_dns_support
 
-  tags = {
-    Name = var.vpc_name
-  }
+  tags = merge(
+    {
+      Name  = var.vpc_name
+    },
+    var.tags
+  )
 
   lifecycle {
     precondition {
@@ -35,9 +38,12 @@ resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.vpc.id
   count = var.number_of_public_subnets == 0 ? 0 : 1
 
-  tags = {
+  tags = merge(
+  {
     Name = "${var.vpc_name}-igw"
-  }
+  },
+  var.tags
+  )
 }
 
 
@@ -53,6 +59,8 @@ module "public_subnets" {
   subnet_type       = "public"
   gateway_id        = var.number_of_public_subnets > 0 ?  aws_internet_gateway.internet_gateway[0].id : null
   map_public_ip_on_launch = var.map_public_ip_on_launch
+
+  tags = var.tags
 }
 
 module "private_subnets" {
@@ -65,6 +73,25 @@ module "private_subnets" {
   number_of_az      = var.number_of_az
   number_of_subnets = var.number_of_private_subnets
   subnet_type       = "private"
-  map_public_ip_on_launch = "false"  
+  map_public_ip_on_launch = "false" 
+  nat_gateway_id = var.enable_regional_natgateway ? module.nat.nat_gateway_id[0] : null
+  enable_regional_natgateway = var.enable_regional_natgateway 
+
+  tags = var.tags 
 }
+
+
+module "nat" {
+  source = "./vpc_sub_modules/natgateway"
+
+  enable_regional_nat_gateway = var.enable_regional_natgateway
+  vpc_id = aws_vpc.vpc.id
+  tags = merge(
+    { 
+      Name = "${var.vpc_name}-nat-gateway"
+    },
+    var.tags 
+  )
+
+} 
 

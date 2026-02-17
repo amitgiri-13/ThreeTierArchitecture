@@ -45,6 +45,12 @@ variable "vpc_azs" {
   }
 }
 
+variable "tags" {
+  description = "Additional tags"
+  type = map(string)
+  default = {}
+}
+
 # Public subnets 
 
 variable "number_of_public_subnets" {
@@ -92,4 +98,9 @@ variable "map_public_ip_on_launch" {
     condition = contains([true, false],var.map_public_ip_on_launch)
     error_message = "map_public_ip_on_launch must be  one of: 'true', 'false'"
   }
+}
+
+variable "enable_regional_natgateway" {
+  description = "Enable regional natgateway for private subnets"
+  type = bool
 }
