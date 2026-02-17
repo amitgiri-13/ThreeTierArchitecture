@@ -5,10 +5,11 @@ resource "aws_subnet" "subnet" {
   map_public_ip_on_launch = var.map_public_ip_on_launch
   count = var.number_of_subnets
 
-  tags = {
-    Name = "${var.vpc_name}-subnet-${var.subnet_type}-${count.index }-${var.subnet_az[count.index % var.number_of_az]}"
-    Type = var.subnet_type
-  }
+  tags = merge(
+    { Name = "${var.vpc_name}-subnet-${var.subnet_type}-${count.index }-${var.subnet_az[count.index % var.number_of_az]}"},
+    { Type = var.subnet_type},
+    var.tags 
+  )
 }
 
 
@@ -16,9 +17,10 @@ resource "aws_route_table" "route_table" {
   vpc_id = var.vpc_id
   count = var.number_of_subnets
 
-  tags = {
-    Name = "${var.vpc_name}-rtb-${var.subnet_type}-${count.index}"
-  }
+  tags = merge(
+    {Name = "${var.vpc_name}-rtb-${var.subnet_type}-${count.index}"},
+    var.tags
+  )
 }
 
 resource "aws_route" "internet_route" {
@@ -27,6 +29,14 @@ resource "aws_route" "internet_route" {
   route_table_id         = aws_route_table.route_table[count.index].id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = var.gateway_id
+}
+
+resource "aws_route" "internet_route_private_subnet" {
+  count = var.subnet_type == "private" && var.enable_regional_natgateway ? var.number_of_subnets : 0
+
+  route_table_id          = aws_route_table.route_table[count.index].id 
+  destination_cidr_block  = "0.0.0.0/0"
+  nat_gateway_id          = var.nat_gateway_id != null ? var.nat_gateway_id : ""
 }
 
 

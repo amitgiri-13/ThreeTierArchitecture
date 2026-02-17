@@ -63,3 +63,22 @@ variable "map_public_ip_on_launch" {
     error_message = "map_public_ip_on_launch must be  one of: 'true', 'false'"
   }
 }
+
+
+variable "nat_gateway_id" {
+  description = "Nat gateway id"
+  type = string
+  default = ""
+}
+
+variable "enable_regional_natgateway" {
+  description = "Enable regional nat gateway"
+  type = bool
+  default = false
+}
+
+variable "tags" {
+  description = "Additional tags"
+  type  = map(string)
+  default = {}
+}
