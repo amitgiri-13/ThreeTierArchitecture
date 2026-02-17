@@ -1,0 +1,4 @@
+output "nat_gateway_id" {
+    description = "nat gateway id"
+    value = aws_nat_gateway.nat[*].id
+}
