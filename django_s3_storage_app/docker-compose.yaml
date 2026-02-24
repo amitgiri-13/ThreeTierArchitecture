@@ -1,0 +1,17 @@
+services:
+
+  web:
+    image: amitgiri13/cloudvault:2.0.4
+    container_name: cloudvault_web
+    restart: always
+    env_file:
+      - .env
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --timeout 120
+    ports:
+      - "80:8000"
+    networks:
+      - cloudvault_net
+
+
+networks:
+  cloudvault_net:

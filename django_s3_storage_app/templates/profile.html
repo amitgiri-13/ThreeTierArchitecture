@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile — CloudVault{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card p-4 text-center mb-3">
+      <div class="user-avatar mx-auto mb-3" style="width:72px; height:72px; font-size:1.8rem; border-radius:50%;">
+        {{ user.username|first|upper }}
+      </div>
+      <h5 style="color:white; font-weight:700;">{{ user.get_full_name|default:user.username }}</h5>
+      <p style="color:#64748b; font-size:0.875rem; margin-bottom:1rem;">{{ user.email }}</p>
+      <div class="d-flex justify-content-center gap-3">
+        <div class="text-center">
+          <div style="font-size:1.25rem; font-weight:700; color:white;">{{ user.files.count }}</div>
+          <div style="font-size:0.75rem; color:#64748b;">Files</div>
+        </div>
+        <div style="width:1px; background:rgba(255,255,255,0.08);"></div>
+        <div class="text-center">
+          <div style="font-size:1.25rem; font-weight:700; color:white;">{{ profile.get_storage_used_display }}</div>
+          <div style="font-size:0.75rem; color:#64748b;">Used</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-3">
+      <h6 style="color:#94a3b8; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:1rem;">Storage Quota</h6>
+      <div class="d-flex justify-content-between mb-2">
+        <span style="font-size:0.875rem; color:#94a3b8;">Used</span>
+        <span style="font-size:0.875rem; color:#e2e8f0;">{{ profile.get_storage_used_display }}</span>
+      </div>
+      <div class="storage-progress mb-2">
+        <div class="progress-bar" style="width:{{ profile.get_usage_percent }}%; background:linear-gradient(90deg,#6366f1,#22d3ee)!important;"></div>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span style="font-size:0.75rem; color:#4b5563;">{{ profile.get_usage_percent }}% used</span>
+        <span style="font-size:0.75rem; color:#4b5563;">{{ profile.get_quota_display }} total</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card p-4">
+      <h6 style="color:white; font-weight:600; margin-bottom:1.5rem;">Edit Profile</h6>
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">First Name</label>
+            {{ form.first_name }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Last Name</label>
+            {{ form.last_name }}
+          </div>
+          <div class="col-12">
+            <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Email Address</label>
+            {{ form.email }}
+          </div>
+        </div>
+        <div class="mt-4">
+          <button type="submit" class="btn btn-glow px-4">
+            <i class="bi bi-check2 me-2"></i>Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card p-4 mt-4">
+      <h6 style="color:white; font-weight:600; margin-bottom:0.5rem;">Account Info</h6>
+      <p style="color:#64748b; font-size:0.875rem; margin-bottom:1rem;">Account details and membership information.</p>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:1rem;">
+            <div style="font-size:0.75rem; color:#64748b; margin-bottom:0.25rem;">Username</div>
+            <div style="color:#e2e8f0; font-weight:500;">{{ user.username }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:1rem;">
+            <div style="font-size:0.75rem; color:#64748b; margin-bottom:0.25rem;">Member Since</div>
+            <div style="color:#e2e8f0; font-weight:500;">{{ user.date_joined|date:"F Y" }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:1rem;">
+            <div style="font-size:0.75rem; color:#64748b; margin-bottom:0.25rem;">Last Login</div>
+            <div style="color:#e2e8f0; font-weight:500;">{{ user.last_login|date:"M d, Y g:i A"|default:"Never" }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:1rem;">
+            <div style="font-size:0.75rem; color:#64748b; margin-bottom:0.25rem;">Account Status</div>
+            <div style="color:#10b981; font-weight:500;">
+              <i class="bi bi-check-circle-fill me-1"></i>Active
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

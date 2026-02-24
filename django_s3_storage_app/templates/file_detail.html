@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ file.name }} — CloudVault{% endblock %}
+{% block page_title %}File Details{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'file_list' %}" style="color:#6366f1; text-decoration:none; font-size:0.875rem;">
+    <i class="bi bi-arrow-left me-1"></i>Back to Files
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Preview / Icon -->
+  <div class="col-lg-4">
+    <div class="card p-4 text-center mb-3">
+      {% if file.get_file_type == 'image' and preview_url %}
+      <img src="{{ preview_url }}" alt="{{ file.name }}" class="img-fluid rounded-3 mb-3" style="max-height:280px; object-fit:contain;">
+      {% else %}
+      <div class="file-icon icon-{{ file.get_file_type }} mx-auto mb-3" style="width:80px; height:80px; border-radius:16px; font-size:2.5rem;">
+        <i class="bi {{ file.get_icon }}"></i>
+      </div>
+      {% endif %}
+      <h6 style="color:white; font-weight:600; word-break:break-all;">{{ file.name }}</h6>
+      <p style="color:#64748b; font-size:0.8rem; margin-bottom:1.5rem;">{{ file.original_name }}</p>
+      
+      <div class="d-grid gap-2">
+        <a href="{% url 'download_file' file.id %}" class="btn btn-glow">
+          <i class="bi bi-download me-2"></i>Download File
+        </a>
+        <form method="post" action="{% url 'delete_file' file.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn w-100" style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3);"
+                  onclick="return confirm('Permanently delete this file? This cannot be undone.')">
+            <i class="bi bi-trash3 me-2"></i>Delete File
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- File Info Card -->
+    <div class="card p-3">
+      <h6 style="color:#94a3b8; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:1rem;">File Information</h6>
+      
+      <div class="mb-2 d-flex justify-content-between">
+        <span style="color:#64748b; font-size:0.8rem;">Type</span>
+        <span style="color:#e2e8f0; font-size:0.8rem; text-transform:capitalize;">{{ file.get_file_type }}</span>
+      </div>
+      <div class="mb-2 d-flex justify-content-between">
+        <span style="color:#64748b; font-size:0.8rem;">Size</span>
+        <span style="color:#e2e8f0; font-size:0.8rem;">{{ file.format_size }}</span>
+      </div>
+      <div class="mb-2 d-flex justify-content-between">
+        <span style="color:#64748b; font-size:0.8rem;">Uploaded</span>
+        <span style="color:#e2e8f0; font-size:0.8rem;">{{ file.created_at|date:"M d, Y g:i A" }}</span>
+      </div>
+      {% if file.last_accessed %}
+      <div class="mb-2 d-flex justify-content-between">
+        <span style="color:#64748b; font-size:0.8rem;">Last Accessed</span>
+        <span style="color:#e2e8f0; font-size:0.8rem;">{{ file.last_accessed|date:"M d, Y" }}</span>
+      </div>
+      {% endif %}
+      <div class="mb-2 d-flex justify-content-between">
+        <span style="color:#64748b; font-size:0.8rem;">Folder</span>
+        <span style="color:#e2e8f0; font-size:0.8rem;">{{ file.folder.name|default:"Root" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Details -->
+  <div class="col-lg-8">
+    {% if file.get_file_type == 'video' and preview_url %}
+    <div class="card p-3 mb-4">
+      <h6 style="color:white; font-weight:600; margin-bottom:1rem;">Preview</h6>
+      <video controls class="w-100 rounded-3" style="max-height:300px; background:#000;">
+        <source src="{{ preview_url }}" type="{{ file.content_type }}">
+      </video>
+    </div>
+    {% elif file.get_file_type == 'audio' and preview_url %}
+    <div class="card p-3 mb-4">
+      <h6 style="color:white; font-weight:600; margin-bottom:1rem;">Preview</h6>
+      <audio controls class="w-100">
+        <source src="{{ preview_url }}" type="{{ file.content_type }}">
+      </audio>
+    </div>
+    {% endif %}
+
+    <div class="card p-4">
+      <h6 style="color:white; font-weight:600; margin-bottom:1.25rem;">Edit Details</h6>
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Display Name</label>
+          <input type="text" name="name" value="{{ file.name }}" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Tags</label>
+          <input type="text" name="tags" value="{{ file.tags }}" class="form-control" 
+                 placeholder="work, photos, important...">
+          <div style="font-size:0.75rem; color:#4b5563; margin-top:0.25rem;">Separate tags with commas</div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Description</label>
+          <textarea name="description" class="form-control" rows="4" placeholder="Add notes about this file...">{{ file.description }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-glow px-4">
+          <i class="bi bi-check2 me-2"></i>Save Changes
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

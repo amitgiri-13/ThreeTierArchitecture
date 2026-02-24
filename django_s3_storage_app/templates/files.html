@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}My Files — CloudVault{% endblock %}
+{% block page_title %}My Files{% endblock %}
+
+{% block content %}
+<!-- Toolbar -->
+<div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+  <!-- Search -->
+  <form method="get" class="d-flex gap-2 flex-grow-1" style="max-width:400px;">
+    <div class="input-group">
+      <span class="input-group-text" style="background:rgba(255,255,255,0.05); border-color:rgba(99,102,241,0.2); color:#64748b;">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search files..." 
+             style="background:rgba(255,255,255,0.05); border-color:rgba(99,102,241,0.2); color:#e2e8f0;">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+  </form>
+
+  <!-- Sort -->
+  <form method="get" id="sortForm">
+    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+    <select name="sort" class="form-select" style="background:rgba(255,255,255,0.05); border-color:rgba(99,102,241,0.2); color:#e2e8f0; width:auto;" onchange="this.form.submit()">
+      <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest First</option>
+      <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+      <option value="name" {% if sort == 'name' %}selected{% endif %}>Name A-Z</option>
+      <option value="-name" {% if sort == '-name' %}selected{% endif %}>Name Z-A</option>
+      <option value="-file_size" {% if sort == '-file_size' %}selected{% endif %}>Largest First</option>
+      <option value="file_size" {% if sort == 'file_size' %}selected{% endif %}>Smallest First</option>
+    </select>
+  </form>
+
+  <div class="ms-auto d-flex gap-2">
+    <button class="btn btn-sm" style="background:rgba(255,255,255,0.05); color:#94a3b8; border-color:rgba(99,102,241,0.2);" 
+            data-bs-toggle="modal" data-bs-target="#newFolderModal">
+      <i class="bi bi-folder-plus me-1"></i>New Folder
+    </button>
+    <a href="{% url 'upload' %}" class="btn btn-glow btn-sm px-3">
+      <i class="bi bi-plus-lg me-1"></i>Upload
+    </a>
+  </div>
+</div>
+
+<!-- Breadcrumb -->
+{% if current_folder %}
+<nav style="margin-bottom:1rem;">
+  <a href="{% url 'file_list' %}" style="color:#6366f1; text-decoration:none; font-size:0.875rem;">Root</a>
+  <span style="color:#4b5563; margin:0 0.5rem;">/</span>
+  <span style="color:#e2e8f0; font-size:0.875rem;">{{ current_folder.name }}</span>
+</nav>
+{% endif %}
+
+<!-- Bulk Actions -->
+<form method="post" action="{% url 'delete_multiple' %}" id="bulkForm">
+  {% csrf_token %}
+  <div id="bulkActions" style="display:none;" class="d-flex align-items-center gap-3 mb-3 p-3 rounded-3" style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2);">
+    <span style="font-size:0.875rem; color:#94a3b8;"><span id="selectedCount">0</span> selected</span>
+    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete selected files permanently?')">
+      <i class="bi bi-trash3 me-1"></i>Delete Selected
+    </button>
+    <button type="button" class="btn btn-sm" style="color:#94a3b8; background:transparent; border:1px solid rgba(255,255,255,0.1);" id="deselectAll">
+      Deselect All
+    </button>
+  </div>
+
+  <!-- Folders -->
+  {% if folders %}
+  <div class="mb-3">
+    <h6 style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.75rem;">Folders</h6>
+    <div class="row g-2">
+      {% for folder in folders %}
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background:rgba(255,255,255,0.04); border:1px solid rgba(99,102,241,0.15);">
+          <i class="bi bi-folder-fill" style="color:#f59e0b; font-size:1.1rem;"></i>
+          <a href="?folder={{ folder.id }}" style="color:#e2e8f0; text-decoration:none; font-size:0.875rem; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            {{ folder.name }}
+          </a>
+          <form method="post" action="{% url 'delete_folder' folder.id %}" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm p-0" style="color:#ef4444; background:none; border:none; opacity:0.6;" 
+                    onclick="return confirm('Delete folder and all its contents?')" title="Delete folder">
+              <i class="bi bi-x" style="font-size:1rem;"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Files Grid -->
+  {% if files %}
+  <h6 style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.75rem;">Files</h6>
+  <div class="row g-3" id="filesGrid">
+    {% for file in files %}
+    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+      <div class="file-card {% if file.id in selected_ids %}selected{% endif %}" id="card-{{ file.id }}">
+        <input type="checkbox" name="file_ids" value="{{ file.id }}" class="file-checkbox form-check-input file-selector" 
+               style="width:18px; height:18px; cursor:pointer;" data-id="{{ file.id }}">
+        
+        <a href="{% url 'file_detail' file.id %}" style="text-decoration:none;">
+          <div class="file-icon icon-{{ file.get_file_type }}">
+            <i class="bi {{ file.get_icon }}"></i>
+          </div>
+          <div class="file-name" title="{{ file.original_name }}">{{ file.name|truncatechars:20 }}</div>
+          <div class="file-meta mt-1">{{ file.format_size }}</div>
+          <div class="file-meta">{{ file.created_at|date:"M d" }}</div>
+        </a>
+
+
+        <!-- Quick actions on hover -->
+        <div class="d-flex gap-1 mt-2">
+          <a href="{% url 'download_file' file.id %}" class="btn btn-sm flex-fill p-1" 
+             style="background:rgba(99,102,241,0.1); color:#6366f1; border:none; font-size:0.7rem; border-radius:6px;">
+            <i class="bi bi-download"></i>
+          </a>
+          <form method="post" action="{% url 'delete_file' file.id %}" style="margin:0; flex:1;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm w-100 p-1" 
+                    style="background:rgba(239,68,68,0.1); color:#ef4444; border:none; font-size:0.7rem; border-radius:6px;"
+                    onclick="return confirm('Delete {{ file.name }}?')">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="text-center py-5">
+    <div style="font-size:4rem; color:#2d2d44; margin-bottom:1rem;">
+      {% if query %}<i class="bi bi-search"></i>{% else %}<i class="bi bi-cloud-slash"></i>{% endif %}
+    </div>
+    {% if query %}
+    <h5 style="color:#4b5563;">No files found for "{{ query }}"</h5>
+    <p style="color:#374151; font-size:0.875rem;">Try a different search term</p>
+    <a href="{% url 'file_list' %}" class="btn btn-outline-secondary btn-sm">Clear Search</a>
+    {% else %}
+    <h5 style="color:#4b5563;">No files here yet</h5>
+    <p style="color:#374151; font-size:0.875rem;">Upload files to get started</p>
+    <a href="{% url 'upload' %}" class="btn btn-glow btn-sm px-4">
+      <i class="bi bi-cloud-upload me-2"></i>Upload Files
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</form>
+
+<!-- New Folder Modal -->
+<div class="modal fade" id="newFolderModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:#1a1a2e; border:1px solid rgba(99,102,241,0.2); border-radius:14px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title" style="color:white;">Create New Folder</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{% url 'create_folder' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Folder Name</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. Photos, Work Documents..." autofocus required>
+          {% if current_folder %}
+          <input type="hidden" name="parent" value="{{ current_folder.id }}">
+          {% endif %}
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-glow btn-sm px-4">Create Folder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// File selection
+const selectors = document.querySelectorAll('.file-selector');
+const bulkActions = document.getElementById('bulkActions');
+const selectedCount = document.getElementById('selectedCount');
+
+function updateBulkActions() {
+  const checked = document.querySelectorAll('.file-selector:checked');
+  const count = checked.length;
+  selectedCount.textContent = count;
+  bulkActions.style.display = count > 0 ? 'flex' : 'none';
+  
+  checked.forEach(cb => document.getElementById('card-' + cb.dataset.id).classList.add('selected'));
+  document.querySelectorAll('.file-selector:not(:checked)').forEach(cb => {
+    document.getElementById('card-' + cb.dataset.id).classList.remove('selected');
+  });
+}
+
+selectors.forEach(cb => cb.addEventListener('change', updateBulkActions));
+
+document.getElementById('deselectAll')?.addEventListener('click', () => {
+  selectors.forEach(cb => { cb.checked = false; });
+  updateBulkActions();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Files — CloudVault{% endblock %}
+{% block page_title %}Upload Files{% endblock %}
+
+{% block extra_css %}
+<style>
+.file-preview-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.file-preview-icon {
+  width: 36px; height: 36px;
+  background: rgba(99,102,241,0.15);
+  color: #6366f1;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.remove-file {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.remove-file:hover { opacity: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <form method="post" enctype="multipart/form-data" id="uploadForm">
+      {% csrf_token %}
+      
+      <!-- Upload Zone -->
+      <div class="card p-4 mb-4">
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon mb-3"><i class="bi bi-cloud-upload"></i></div>
+          <h5 style="color:white; font-weight:600;">Drop files here or click to browse</h5>
+          <p style="color:#64748b; font-size:0.875rem; margin-bottom:1.5rem;">
+            Upload multiple files at once. Max {{ max_size }}MB per file.
+          </p>
+          <input type="file" name="files" id="fileInput" multiple class="d-none">
+          <button type="button" class="btn btn-glow px-4" onclick="document.getElementById('fileInput').click()">
+            <i class="bi bi-folder2-open me-2"></i>Browse Files
+          </button>
+        </div>
+      </div>
+
+      <!-- File Preview List -->
+      <div id="filePreviewContainer" class="mb-4" style="display:none;">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 style="color:white; margin:0; font-weight:600;">Selected Files</h6>
+          <button type="button" class="btn btn-sm" style="color:#ef4444; background:rgba(239,68,68,0.1); border:none; border-radius:6px;" id="clearAll">
+            <i class="bi bi-x-lg me-1"></i>Clear All
+          </button>
+        </div>
+        <div id="fileList"></div>
+        <div class="d-flex align-items-center gap-2 mt-2" style="font-size:0.8rem; color:#64748b;">
+          <i class="bi bi-info-circle"></i>
+          <span id="fileSummary"></span>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="card p-4 mb-4">
+        <h6 style="color:white; font-weight:600; margin-bottom:1.25rem;">Upload Options</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Save to Folder</label>
+            <select name="folder" class="form-select" style="background:rgba(255,255,255,0.05); border-color:rgba(99,102,241,0.2); color:#e2e8f0;">
+              <option value="">Root (No Folder)</option>
+              {% for folder in folders %}
+              <option value="{{ folder.id }}">{{ folder.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Tags</label>
+            <input type="text" name="tags" class="form-control" placeholder="work, photos, important...">
+          </div>
+          <div class="col-12">
+            <label class="form-label" style="color:#94a3b8; font-size:0.875rem;">Description</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="Optional description for these files..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Storage info -->
+      <div class="card p-3 mb-4" style="background:rgba(99,102,241,0.05); border-color:rgba(99,102,241,0.2);">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span style="font-size:0.8rem; color:#94a3b8;">Storage Usage</span>
+          <span style="font-size:0.8rem; color:#e2e8f0;">{{ profile.get_storage_used_display }} / {{ profile.get_quota_display }}</span>
+        </div>
+        <div class="storage-progress">
+          <div class="progress-bar" style="width:{{ profile.get_usage_percent }}%; background:linear-gradient(90deg,#6366f1,#22d3ee)!important;"></div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="d-flex gap-3">
+        <button type="submit" class="btn btn-glow px-5 py-2" id="submitBtn" disabled>
+          <i class="bi bi-cloud-upload me-2"></i>Upload Files
+        </button>
+        <a href="{% url 'file_list' %}" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const fileList = document.getElementById('fileList');
+const filePreviewContainer = document.getElementById('filePreviewContainer');
+const fileSummary = document.getElementById('fileSummary');
+const submitBtn = document.getElementById('submitBtn');
+let selectedFiles = [];
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
+}
+
+function getFileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  const icons = {
+    jpg: 'bi-file-image', jpeg: 'bi-file-image', png: 'bi-file-image', gif: 'bi-file-image', webp: 'bi-file-image',
+    mp4: 'bi-file-play', avi: 'bi-file-play', mov: 'bi-file-play', mkv: 'bi-file-play',
+    mp3: 'bi-file-music', wav: 'bi-file-music', ogg: 'bi-file-music',
+    pdf: 'bi-file-pdf', doc: 'bi-file-word', docx: 'bi-file-word', txt: 'bi-file-text',
+    xls: 'bi-file-spreadsheet', xlsx: 'bi-file-spreadsheet', csv: 'bi-file-spreadsheet',
+    zip: 'bi-file-zip', tar: 'bi-file-zip', gz: 'bi-file-zip', rar: 'bi-file-zip',
+    py: 'bi-file-code', js: 'bi-file-code', html: 'bi-file-code', css: 'bi-file-code',
+  };
+  return icons[ext] || 'bi-file';
+}
+
+function updateDisplay() {
+  fileList.innerHTML = '';
+  let totalSize = 0;
+
+  selectedFiles.forEach((file, idx) => {
+    totalSize += file.size;
+    const div = document.createElement('div');
+    div.className = 'file-preview-item';
+    div.innerHTML = `
+      <div class="file-preview-icon"><i class="bi ${getFileIcon(file.name)}"></i></div>
+      <div style="min-width:0; flex:1;">
+        <div style="font-size:0.875rem; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${file.name}</div>
+        <div style="font-size:0.75rem; color:#64748b;">${formatBytes(file.size)}</div>
+      </div>
+      <button type="button" class="remove-file" data-idx="${idx}">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    `;
+    fileList.appendChild(div);
+  });
+
+  filePreviewContainer.style.display = selectedFiles.length ? 'block' : 'none';
+  fileSummary.textContent = `${selectedFiles.length} file(s) selected — ${formatBytes(totalSize)} total`;
+  submitBtn.disabled = selectedFiles.length === 0;
+
+  // Rebuild the actual file input using DataTransfer
+  const dt = new DataTransfer();
+  selectedFiles.forEach(f => dt.items.add(f));
+  fileInput.files = dt.files;
+}
+
+fileInput.addEventListener('change', () => {
+  Array.from(fileInput.files).forEach(f => selectedFiles.push(f));
+  updateDisplay();
+});
+
+fileList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.remove-file');
+  if (btn) {
+    selectedFiles.splice(parseInt(btn.dataset.idx), 1);
+    updateDisplay();
+  }
+});
+
+document.getElementById('clearAll').addEventListener('click', () => {
+  selectedFiles = [];
+  updateDisplay();
+});
+
+// Drag and drop
+uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  Array.from(e.dataTransfer.files).forEach(f => selectedFiles.push(f));
+  updateDisplay();
+});
+uploadZone.addEventListener('click', (e) => {
+  if (!e.target.closest('button')) fileInput.click();
+});
+
+// Upload progress indication
+document.getElementById('uploadForm').addEventListener('submit', (e) => {
+  if (selectedFiles.length === 0) { e.preventDefault(); return; }
+  submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+  submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

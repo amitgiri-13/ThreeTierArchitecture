@@ -1,0 +1,11 @@
+Django
+mysqlclient
+boto3
+django-storages
+Pillow
+python-dotenv
+gunicorn
+django-crispy-forms
+crispy-bootstrap5
+humanize
+python-magic

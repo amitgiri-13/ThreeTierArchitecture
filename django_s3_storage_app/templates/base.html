@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CloudVault{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #22d3ee;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg-dark: #0f0f1a;
+      --bg-card: #1a1a2e;
+      --bg-sidebar: #13131f;
+      --border-color: rgba(99,102,241,0.15);
+      --text-muted: #8892a4;
+      --sidebar-width: 260px;
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      background: var(--bg-dark);
+      color: #e2e8f0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-width);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-brand {
+      padding: 1.5rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-nav {
+      padding: 1rem 0.75rem;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-section-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      padding: 0.75rem 0.75rem 0.25rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+
+    .nav-link:hover {
+      background: rgba(99,102,241,0.12);
+      color: white;
+    }
+
+    .nav-link.active {
+      background: rgba(99,102,241,0.2);
+      color: var(--primary);
+    }
+
+    .nav-link i {
+      font-size: 1.1rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 1rem 0.75rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+    }
+
+    .user-avatar {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .user-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .user-role {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Main content */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.875rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .page-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+      margin: 0;
+    }
+
+    .content-area {
+      padding: 1.75rem;
+      flex: 1;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99,102,241,0.4);
+    }
+
+    .stat-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: white;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+
+    .btn-glow {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 0 20px rgba(99,102,241,0.3);
+    }
+
+    .btn-glow:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 30px rgba(99,102,241,0.5);
+      color: white;
+    }
+
+    /* File cards */
+    .file-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1rem;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .file-card:hover {
+      border-color: rgba(99,102,241,0.4);
+      transform: translateY(-2px);
+    }
+
+    .file-card.selected {
+      border-color: var(--primary);
+      background: rgba(99,102,241,0.1);
+    }
+
+    .file-icon {
+      width: 48px; height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .file-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #e2e8f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .file-checkbox {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .file-card:hover .file-checkbox,
+    .file-card.selected .file-checkbox {
+      opacity: 1;
+    }
+
+    /* Progress bar */
+    .storage-progress { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); }
+    .storage-progress .progress-bar { border-radius: 3px; }
+
+    /* Form styles */
+    .form-control, .form-select {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--border-color);
+      color: #e2e8f0;
+    }
+    .form-control:focus, .form-select:focus {
+      background: rgba(255,255,255,0.08);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+      color: #e2e8f0;
+    }
+    .form-control::placeholder { color: #4b5563; }
+
+    /* Alerts */
+    .messages-container {
+      position: fixed;
+      top: 1rem; right: 1rem;
+      z-index: 9999;
+      max-width: 380px;
+    }
+
+    .alert {
+      border-radius: 10px;
+      border: none;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed rgba(99,102,241,0.4);
+      border-radius: 14px;
+      padding: 3rem 2rem;
+      text-align: center;
+      transition: all 0.2s ease;
+      background: rgba(99,102,241,0.03);
+      cursor: pointer;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--primary);
+      background: rgba(99,102,241,0.08);
+    }
+
+    .upload-icon { font-size: 3rem; color: var(--primary); opacity: 0.7; }
+
+    /* Color classes for file types */
+    .icon-image { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .icon-video { background: rgba(168,85,247,0.15); color: #a855f7; }
+    .icon-audio { background: rgba(34,211,238,0.15); color: #22d3ee; }
+    .icon-document { background: rgba(99,102,241,0.15); color: #6366f1; }
+    .icon-spreadsheet { background: rgba(16,185,129,0.15); color: #10b981; }
+    .icon-presentation { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .icon-archive { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .icon-code { background: rgba(52,211,153,0.15); color: #34d399; }
+    .icon-other { background: rgba(148,163,184,0.15); color: #94a3b8; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+    }
+
+    /* Table */
+    .table { color: #94a3b8; }
+    .table thead th { color: #e2e8f0; border-color: var(--border-color); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .table td { border-color: var(--border-color); vertical-align: middle; }
+    .table-hover tbody tr:hover { background: rgba(99,102,241,0.05); }
+
+    /* Dropdown */
+    .dropdown-menu {
+      background: #1e1e32;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .dropdown-item { color: #94a3b8; font-size: 0.875rem; }
+    .dropdown-item:hover { background: rgba(99,102,241,0.1); color: white; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <a href="{% url 'dashboard' %}" class="sidebar-brand">
+    <div class="brand-icon"><i class="bi bi-cloud-fill"></i></div>
+    <span class="brand-text">CloudVault</span>
+  </a>
+  
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+    <a href="{% url 'file_list' %}" class="nav-link {% if request.resolver_match.url_name == 'file_list' %}active{% endif %}">
+      <i class="bi bi-folder2-open"></i> My Files
+    </a>
+    <a href="{% url 'upload' %}" class="nav-link {% if request.resolver_match.url_name == 'upload' %}active{% endif %}">
+      <i class="bi bi-cloud-upload"></i> Upload
+    </a>
+    </form>
+
+    <div class="nav-section-label" style="margin-top:0.5rem;">Account</div>
+    <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+      <i class="bi bi-person-circle"></i> Profile
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar">{{ user.username|first|upper }}</div>
+      <div>
+        <div class="user-name">{{ user.username }}</div>
+        <div class="user-role">{{ user.email|default:"Member" }}</div>
+      </div>
+    </div>
+    <a href="{% url 'logout' %}" class="nav-link mt-2 text-danger">
+      <i class="bi bi-box-arrow-left"></i> Sign Out
+    </a>
+  </div>
+</aside>
+
+<!-- Main content -->
+<div class="main-content">
+  <header class="topbar">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-sm d-md-none border-0" id="sidebarToggle" style="color:#94a3b8;">
+        <i class="bi bi-list fs-5"></i>
+      </button>
+      <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'upload' %}" class="btn btn-glow btn-sm px-3">
+        <i class="bi bi-plus-lg me-1"></i> Upload
+      </a>
+    </div>
+  </header>
+
+  <!-- Messages -->
+  {% if messages %}
+  <div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
+      <i class="bi {% if message.tags == 'error' %}bi-x-circle{% elif message.tags == 'warning' %}bi-exclamation-triangle{% elif message.tags == 'success' %}bi-check-circle{% else %}bi-info-circle{% endif %}"></i>
+      <div>{{ message }}</div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="content-area">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+{% else %}
+<!-- Auth pages - no sidebar -->
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-dismiss alerts
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(el => {
+      const a = bootstrap.Alert.getOrCreateInstance(el);
+      a.close();
+    });
+  }, 5000);
+
+  // Sidebar toggle (mobile)
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

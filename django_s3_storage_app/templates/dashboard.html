@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — CloudVault{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Welcome -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h2 style="font-size:1.4rem; font-weight:700; color:white; margin-bottom:0.25rem;">
+      Good day, {{ user.first_name|default:user.username }} 
+    </h2>
+    <p style="color:#64748b; margin:0; font-size:0.9rem;">Here's what's happening with your storage</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'upload' %}" class="btn btn-glow px-4">
+      <i class="bi bi-cloud-upload me-2"></i>Upload Files
+    </a>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="stat-icon icon-document"><i class="bi bi-files"></i></div>
+        <span style="font-size:0.75rem; color:#10b981; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:20px;">Total</span>
+      </div>
+      <div class="stat-value">{{ total_files }}</div>
+      <div class="stat-label">Files Stored</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="stat-icon icon-archive"><i class="bi bi-hdd"></i></div>
+        <span style="font-size:0.75rem; color:#6366f1; background:rgba(99,102,241,0.1); padding:2px 8px; border-radius:20px;">Used</span>
+      </div>
+      <div class="stat-value" style="font-size:1.4rem;">{{ total_size }}</div>
+      <div class="stat-label">Storage Used</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="stat-icon" style="background:rgba(34,211,238,0.15); color:#22d3ee;"><i class="bi bi-pie-chart"></i></div>
+        <span style="font-size:0.75rem; color:#22d3ee; background:rgba(34,211,238,0.1); padding:2px 8px; border-radius:20px;">Quota</span>
+      </div>
+      <div class="stat-value">{{ storage_percent }}%</div>
+      <div class="stat-label">Storage Used</div>
+    </div>
+  </div>
+</div>
+
+<!-- Storage Bar -->
+<div class="card p-3 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <span style="font-size:0.875rem; color:#94a3b8; font-weight:500;">
+      <i class="bi bi-hdd me-1"></i> Storage Usage
+    </span>
+    <span style="font-size:0.875rem; color:#e2e8f0;">
+      {{ total_size }} / {{ profile.get_quota_display }}
+    </span>
+  </div>
+  <div class="storage-progress">
+    <div class="progress-bar {% if storage_percent > 80 %}bg-danger{% elif storage_percent > 60 %}bg-warning{% else %}bg-primary{% endif %}" 
+         style="width:{{ storage_percent }}%; background: linear-gradient(90deg, #6366f1, #22d3ee)!important;"></div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Recent Files -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header border-0 pt-3 pb-2 px-3 d-flex align-items-center justify-content-between" style="background:transparent;">
+        <h6 style="color:white; margin:0; font-weight:600;">Recent Files</h6>
+        <a href="{% url 'file_list' %}" style="font-size:0.8rem; color:#6366f1; text-decoration:none;">View all →</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_files %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th class="ps-3">Name</th>
+                <th>Size</th>
+                <th class="pe-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for file in recent_files %}
+              <tr>
+                <td class="ps-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="file-icon icon-{{ file.get_file_type }}" style="width:32px; height:32px; border-radius:8px; font-size:1rem; margin:0;">
+                      <i class="bi {{ file.get_icon }}"></i>
+                    </div>
+                    <div>
+                      <a href="{% url 'file_detail' file.id %}" style="color:#e2e8f0; text-decoration:none; font-size:0.875rem; font-weight:500;">
+                        {{ file.name|truncatechars:30 }}
+                      </a>
+                      <div style="font-size:0.7rem; color:#64748b;">{{ file.created_at|date:"M d, Y" }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-size:0.8rem;">{{ file.format_size }}</td>
+                <td class="pe-3">
+                  <div class="d-flex gap-1">
+                    <a href="{% url 'download_file' file.id %}" class="btn btn-sm" style="background:rgba(99,102,241,0.1); color:#6366f1; border:none; padding:4px 8px; border-radius:6px;" title="Download">
+                      <i class="bi bi-download" style="font-size:0.75rem;"></i>
+                    </a>
+                    <form method="post" action="{% url 'delete_file' file.id %}" style="margin:0;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1); color:#ef4444; border:none; padding:4px 8px; border-radius:6px;" 
+                              title="Delete" onclick="return confirm('Delete this file?')">
+                        <i class="bi bi-trash3" style="font-size:0.75rem;"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-folder2-open" style="font-size:2.5rem; color:#4b5563;"></i>
+          <p style="color:#64748b; margin-top:1rem; margin-bottom:0;">No files yet. Upload your first file!</p>
+          <a href="{% url 'upload' %}" class="btn btn-glow btn-sm mt-3">
+            <i class="bi bi-cloud-upload me-1"></i> Upload Now
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="col-lg-4">
+    <!-- File Types -->
+    <div class="card p-3 mb-3">
+      <h6 style="color:white; font-weight:600; margin-bottom:1rem;">File Types</h6>
+      {% if file_types %}
+      {% for ftype, count in file_types.items %}
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <div class="file-icon icon-{{ ftype }}" style="width:28px; height:28px; border-radius:6px; font-size:0.85rem; margin:0; flex-shrink:0;">
+            <i class="bi bi-file"></i>
+          </div>
+          <span style="font-size:0.875rem; color:#94a3b8; text-transform:capitalize;">{{ ftype }}</span>
+        </div>
+        <span style="font-size:0.8rem; color:#e2e8f0; font-weight:500;">{{ count }}</span>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p style="color:#64748b; font-size:0.875rem; margin:0;">No files uploaded yet</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

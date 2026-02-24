@@ -1,0 +1,14 @@
+   11  mkdir app
+   12  cd app
+   13  vim .env
+   14  vim docker-compose.yaml
+   15  sudo amazon-linux-extras enable docker
+   16  sudo yum install docker -y
+   17  sudo systemctl start docker
+   18  sudo systemctl enable docker
+   19  sudo usermod -aG docker $USER
+   20  DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '"' -f 4)
+   21  sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   22  sudo chmod +x /usr/local/bin/docker-compose
+   23  docker-compose --version
+   24  history
