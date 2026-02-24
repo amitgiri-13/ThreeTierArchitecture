@@ -109,7 +109,7 @@ variable "db_password" {
 variable "deletion_protection" {
   description = "Enable deletion protection (prevents accidental destroy)"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "skip_final_snapshot" {
@@ -150,7 +150,7 @@ variable "copy_tags_to_snapshot" {
 variable "performance_insights_enabled" {
   description = "Enable Performance Insights"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "performance_insights_retention_period" {

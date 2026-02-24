@@ -21,8 +21,8 @@ resource "aws_db_instance" "db" {
 #-----Credentials-----
   db_name = var.db_name
   username = var.db_username
-  password = var.manage_master_user_password != null ? null : var.db_password 
-  manage_master_user_password = var.manage_master_user_password != null ? var.manage_master_user_password : null 
+  password = var.manage_master_user_password ? null : var.db_password 
+  manage_master_user_password = var.manage_master_user_password ? var.manage_master_user_password : null 
   master_user_secret_kms_key_id = var.kms_key_id  != null ? var.kms_key_id : null
 
 #-----Protection-----
@@ -38,7 +38,7 @@ resource "aws_db_instance" "db" {
 
 #-----Monitoring-----
   performance_insights_enabled = var.performance_insights_enabled
-  performance_insights_retention_period = var.performance_insights_retention_period
+  performance_insights_retention_period = var.performance_insights_enabled ? var.performance_insights_retention_period : null 
   performance_insights_kms_key_id       = var.performance_insights_kms_key_id != null ? var.performance_insights_kms_key_id : null
 
   tags = merge(
