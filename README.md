@@ -51,7 +51,7 @@ The architecture follows the standard three-tier design:
 - **Version Control:** Git/GitHub  
 
 --- 
-##  Setup & Deployment Steps
+##  Setup & Deployment Steps : [Demo Application Deployment](./DEMO.md)
 
 ###  Prerequisites
 
@@ -62,56 +62,6 @@ Make sure you have the following configured before deployment:
 - **Cloudflare Zone ID** for your domain
 - **Cloudflare API Token/Key** with permission to manage DNS records
 - **User data script (`userdata.sh`)** prepared for application deployment
-
----
-
-###  Clone Repository
-
-```bash
-git clone https://github.com/amitgiri-13/ThreeTierArchitecture
-cd ThreeTierArchitecture
-```
-
----
-
-###  Navigate to Terraform Directory
-
-```bash
-cd terraform
-```
-
----
-
-### Initialize Terraform
-
-```bash
-terraform init
-```
-
----
-
-###  Plan Infrastructure
-
-```bash
-terraform plan --var-file="variables.tfvars"
-```
-
----
-
-### Apply Infrastructure
-
-```bash
-terraform apply --var-file="variables.tfvars"
-```
-
----
-
-###  Access the Application
-
-After deployment is complete, you can access your application via:
-
-* **Application Load Balancer DNS** output from Terraform
-* **Custom Domain Name** configured through Cloudflare DNS
 
 ---
 
