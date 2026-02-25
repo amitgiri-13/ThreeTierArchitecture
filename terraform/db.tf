@@ -1,31 +1,31 @@
 resource "aws_db_subnet_group" "subnet_group" {
-  name       = "db-subnet-group"
+  name       = "${var.name_prefix}-subnet-group"
   subnet_ids = module.vpc.public_subnets
 
   tags = {
-    Name = "db-subnet-group"
+    Name = "${var.name_prefix}-subnet-group"
   }
 }
 
 module "rds" {
-  source = "./modules/rds"
-  name_prefix = "mydb"
-  engine = "mysql"
-  engine_version = "8.0"
-  instance_class = "db.t3.micro"
+  source         = "./modules/rds"
+  name_prefix    = var.name_prefix
+  engine         = var.db_engine
+  engine_version = var.db_engine_version
+  instance_class = var.db_instance_class
 
-  allocated_storage = 20
-  max_allocated_storage = 50
-  storage_encrypted = true 
-  storage_type = "gp3"
+  allocated_storage     = var.db_allocated_storage
+  max_allocated_storage = var.db_max_allocated_storage
+  storage_encrypted     = var.db_storage_encrypted
+  storage_type          = var.db_storage_type
 
-  db_subnet_group_name = aws_db_subnet_group.subnet_group.id
+  db_subnet_group_name   = aws_db_subnet_group.subnet_group.id
   vpc_security_group_ids = ["${module.db_sg.security_group_id}"]
 
-  multi_az = false 
-  publicly_accessible = false 
+  multi_az            = var.db_multi_az
+  publicly_accessible = var.db_publicly_accessible
 
-  db_name = var.db_name
+  db_name     = var.db_name
   db_username = var.db_username
   db_password = var.db_password
 
