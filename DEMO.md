@@ -41,6 +41,10 @@ zone_id   = "xxxxxxxxxxxxxxxxxxxx"
 
 ## Setup & Deployment Steps
 
+Let's deploy the infrastructure and a demo application.
+- View: **[Demo Application Code](./django_s3_storage_app)**
+- Docker Image: **amitgiri13/cloudvault:3.0.1**
+
 ### 1. Clone the Repository
 
 ```bash

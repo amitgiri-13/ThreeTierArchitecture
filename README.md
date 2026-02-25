@@ -2,7 +2,13 @@
 
 **A highly available and scalable three-tier architecture is implemented on Amazon Web Services, with domain and DNS management handled by Cloudflare. The infrastructure is fully managed using Terraform, enabling version control, modular configuration, and consistent deployments across dev, staging, and production environments.**
 
-## Architecture overview
+## Implementation
+
+### 1. [Infrastructure as code - Terraform](./terraform)
+### 2. [Demo Application Deployment](./DEMO.md)
+### 3. [Demo Application Code](./django_s3_storage_app)
+
+## Three-Architecture overview
 
 The architecture follows the standard three-tier design:
 
