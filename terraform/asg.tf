@@ -15,7 +15,14 @@ module "asg" {
   key_name               = var.key_name
   vpc_security_group_ids = ["${module.web_sg.security_group_id}"]
   # iam_instance_profile   = 
-  user_data         = file(var.user_data)
+  user_data         = templatefile(var.user_data,{
+    alb_dns = module.alb.alb_dns_name
+    db_host = split(":", module.rds.rds_endpoint)[0]
+    db_name = var.db_name
+    db_user = var.db_username
+    db_pass = var.db_password
+    db_port = module.rds.rds_port
+  })
   enable_monitoring = false
 
   # Block Device
