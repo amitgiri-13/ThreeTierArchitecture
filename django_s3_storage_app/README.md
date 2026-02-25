@@ -1,6 +1,9 @@
 #  CloudVault — Django S3 Storage Application
 
-A full-featured cloud storage management app built with **Django**, **MySQL**, and **AWS S3**. Users can securely upload, manage, download, and backup files — each user gets their own isolated S3 directory.
+A  cloud storage management app built with **Django**, **MySQL**, and **AWS S3**. Users can securely upload, manage, download, and backup files — each user gets their own isolated S3 directory. This app is built for demonstration purpose.
+
+**Docker Image**: amitgiri13/cloudvault:3.0.1
+
 
 ##  Features
 
