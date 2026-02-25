@@ -136,7 +136,7 @@ variable "asg_desired_capacity" {
 variable "health_check_type" {
   description = "asg health check type"
   type        = string
-  default     = "Ec2"
+  default     = "EC2"
 }
 
 #-----------------------------

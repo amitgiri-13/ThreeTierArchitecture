@@ -1,16 +1,16 @@
 output "network" {
   description = "All VPC and subnet related outputs"
   value = {
-    vpc_id                = module.vpc.vpc_id
-    public_subnets        = module.vpc.public_subnets
-    private_subnets       = module.vpc.private_subnets
-    nat_gateway_id        = module.vpc.regional_nat_gateway_id
-    internet_gateway_id   = module.vpc.internet_gateway_id
+    vpc_id              = module.vpc.vpc_id
+    public_subnets      = module.vpc.public_subnets
+    private_subnets     = module.vpc.private_subnets
+    nat_gateway_id      = module.vpc.regional_nat_gateway_id
+    internet_gateway_id = module.vpc.internet_gateway_id
 
     nacl = {
-      public_subnet_nacl_id         = module.public_subnet_nacl.nacl_id
-      private_subnet_web_nacl_id    = module.private_subnet_web_nacl.nacl_id
-      private_subnet_db_nacl_id     = module.private_subnet_db_nacl.nacl_id
+      # public_subnet_nacl_id      = module.public_subnet_nacl.nacl_id
+      # private_subnet_web_nacl_id = module.private_subnet_web_nacl.nacl_id
+      private_subnet_db_nacl_id  = module.private_subnet_db_nacl.nacl_id
     }
   }
 }
