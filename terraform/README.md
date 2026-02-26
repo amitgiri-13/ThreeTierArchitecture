@@ -3,6 +3,7 @@
 **Project:** Scalable Multi-Tier Web Application on AWS  
 **Description:** This Terraform configuration provisions a complete, production-ready AWS environment including VPC networking, security layers (SG + NACL), Application Load Balancer, Auto Scaling Group with EC2 instances, RDS database, and DNS management. The project follows a modular design for reusability and maintainability.
 
+
 ## Table of Contents
 
 - [Root Configuration Files](#root-configuration-files)

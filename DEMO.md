@@ -129,6 +129,13 @@ Type `yes` when prompted.
 
 ---
 
+### Terraform graph
+
+```bash
+terraform graph | dot -Tsvg > graph.svg
+```
+![alt text](./images/graph.svg)
+
 ## Access the Application
 
 Once deployment is complete, you can access the application using:
